@@ -2,13 +2,26 @@ import streamlit as st
 import pickle
 import pandas as pd
 import numpy as np
+import os
 
 # ---------------------------
 # Load model and preprocessors
 # ---------------------------
-model = pickle.load(open(r'C:\Users\HP\Desktop\Innomatics\Machine Learning\Banking Domain\model\model.pkl', 'rb'))
-scaler = pickle.load(open(r'C:\Users\HP\Desktop\Innomatics\Machine Learning\Banking Domain\model\scaler.pkl', 'rb'))
-encoder = pickle.load(open(r'C:\Users\HP\Desktop\Innomatics\Machine Learning\Banking Domain\model\encoder.pkl', 'rb'))
+
+# Dynamically resolve model paths (works everywhere)
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "model")
+
+model_path = os.path.join(MODEL_DIR, "model.pkl")
+scaler_path = os.path.join(MODEL_DIR, "scaler.pkl")
+encoder_path = os.path.join(MODEL_DIR, "encoder.pkl")
+
+# Load models safely
+with open(model_path, "rb") as f:
+    model = pickle.load(f)
+with open(scaler_path, "rb") as f:
+    scaler = pickle.load(f)
+with open(encoder_path, "rb") as f:
+    encoder = pickle.load(f)
 
 # ---------------------------
 # Streamlit UI
@@ -57,16 +70,15 @@ st.dataframe(input_data)
 # ---------------------------
 # Preprocessing
 # ---------------------------
-# Separate numeric and categorical columns
 num_cols = ['person_age', 'person_income', 'person_emp_length', 'loan_amnt',
             'loan_int_rate', 'loan_percent_income', 'cb_person_cred_hist_length']
 cat_cols = ['person_home_ownership', 'loan_intent', 'loan_grade', 'cb_person_default_on_file']
 
-# Scale and encode
+# Scale and encode input
 num_scaled = scaler.transform(input_data[num_cols])
 cat_encoded = encoder.transform(input_data[cat_cols])
 
-# Combine
+# Combine into single array
 X_processed = np.concatenate([num_scaled, cat_encoded], axis=1)
 
 # ---------------------------
